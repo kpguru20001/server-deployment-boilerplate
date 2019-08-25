@@ -37,7 +37,7 @@ services:
       - proxy-tier
 # Backend
   credo-backend:
-    build: ./credo-backend
+    build: ./credo-backend #chance to dir containing the docker build file
     image: credo-backend
     restart: unless-stopped
     container_name: credo-backend
