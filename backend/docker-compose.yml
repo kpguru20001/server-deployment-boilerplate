@@ -1,0 +1,60 @@
+version: "3.1"
+services:
+#MongoDB container
+  mongo:
+    image: mongo
+    restart: always
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data:/data/db
+    networks :
+      - mongo-compose-network
+# mongo Express
+  mongo-express:
+    image: mongo-express
+    restart: always
+    container_name: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGOEXPRESS_LOGIN}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGOEXPRESS_PASSWORD}
+      ME_CONFIG_MONGODB_PORT : 27017
+      ME_CONFIG_MONGODB_SERVER : 'mongo'
+      ME_CONFIG_OPTIONS_EDITORTHEME : 'ambiance'
+      VIRTUAL_HOST: mongo.host_name.ml
+      LETSENCRYPT_HOST: mongo.host_name.ml
+      LETSENCRYPT_EMAIL: mailID@domain.com
+    networks :
+      - mongo-compose-network
+      - proxy-tier
+# Backend
+  credo-backend:
+    build: ./credo-backend
+    image: credo-backend
+    restart: unless-stopped
+    container_name: credo-backend
+    environment:
+      MONGOLAB_URI: mongodb://username:password@mongo:27017/dbname
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    ports:
+      - "4000:4000"
+      - "27017"
+    networks :
+      - mongo-compose-network
+
+networks:
+  mongo-compose-network :
+    external : true
+  proxy-tier:
+    external: true
