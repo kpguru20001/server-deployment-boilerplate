@@ -1,0 +1,37 @@
+version: '2'
+services:
+  git:
+    image: gitlab/gitlab-ce:latest
+    container_name: git
+    restart: always
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://git.host_name.ml'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['proxy_set_headers'] = {
+          "X-Forwarded-Proto" => "https",
+          "X-Forwarded-Ssl" => "on"
+        }
+      VIRTUAL_HOST : git.host_name.ml
+      LETSENCRYPT_HOST : git.host_name.ml
+      LETSENCRYPT_EMAIL : yourmailID@domain.com
+
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+    
+    networks:
+      - proxy-tier
+    
+    ports:
+      - '2289:22'
+      
+networks:
+  proxy-tier :
+    external : true
+volumes:
+  config:
+  logs:
+  data:
