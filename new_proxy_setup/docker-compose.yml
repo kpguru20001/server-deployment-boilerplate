@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+  portainer:
+    image: portainer/portainer
+    container_name: portainer
+    restart: always
+    environment:
+      VIRTUAL_HOST: docker.flycamp.org
+      LETSENCRYPT_HOST: docker.flycamp.org
+      LETSENCRYPT_EMAIL: contact@flycamp.org
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9000:9000
+      - 8000:8000
+
+  web-redirect:
+    image: adamkdean/redirect
+    environment:
+      VIRTUAL_HOST: flycamp.org
+      LETSENCRYPT_HOST: flycamp.org
+      LETSENCRYPT_EMAIL: "contact@flycamp.org"
+      REDIRECT_LOCATION: "https://www.flycamp.org"
+    networks:
+      service_network:
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    container_name: nginx-proxy
+    networks:
+      service_network:
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+
+  nginx-proxy-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    environment:
+      NGINX_PROXY_CONTAINER: "nginx-proxy"
+    networks:
+      service_network:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+
+networks:
+  service_network:
+
+volumes:
+  nginx-certs:
+  nginx-vhost:
+  nginx-html:
+  portainer_data:
