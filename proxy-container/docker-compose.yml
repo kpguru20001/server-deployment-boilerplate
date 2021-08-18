@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 
 services:
   proxy:
@@ -34,7 +34,7 @@ services:
       - "proxy"
     networks:
       - "default"
-      - "proxy-tier"  
+      - "proxy-tier"
 
   portainer:
     image: portainer/portainer
@@ -54,7 +54,6 @@ volumes:
   vhost.d:
   html:
   mongo:
-    external: true
+
 networks:
   proxy-tier:
-    external: true	
